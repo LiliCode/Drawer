@@ -7,6 +7,8 @@
 //
 
 #import "AppDelegate.h"
+#import "LeftViewController.h"
+#import "NavigationController.h"
 
 @interface AppDelegate ()
 
@@ -15,8 +17,19 @@
 @implementation AppDelegate
 
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    
+    NavigationController *rootViewController = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateInitialViewController];
+    
+    DrawerController *drawer = [[DrawerController alloc] initWithRootViewController:rootViewController];
+    drawer.leftViewController = [[LeftViewController alloc] init];
+    
+    self.window.rootViewController = drawer;
+    
+    [self.window makeKeyAndVisible];
+    
     return YES;
 }
 
