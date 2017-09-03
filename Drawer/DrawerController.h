@@ -75,8 +75,6 @@ typedef NS_ENUM(NSUInteger, DrawerControllerState)
 @interface DrawerController : UIViewController
 /** 左边的抽屉 */
 @property (strong , nonatomic) UIViewController <DrawerControllerChild, DrawerControllerPresenting>*leftViewController;
-/** 右边的抽屉 */
-@property (strong , nonatomic) UIViewController <DrawerControllerChild, DrawerControllerPresenting>*rightViewContorller;
 /** 抽屉划出的距离，默认偏移屏幕宽度的3/4 */
 @property (assign , nonatomic) CGFloat offset;
 /** 抽屉的状态 */

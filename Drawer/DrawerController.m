@@ -60,6 +60,7 @@ static const CGFloat kDrawerControllerDimmingColorAlpha = 0.5f;
         rootViewController.view.frame = self.view.bounds;
         // 子控制器移动到父控制器完成
         [rootViewController didMoveToParentViewController:self];
+        
         // 设置偏移
         self.offset = [UIScreen mainScreen].bounds.size.width * (3.0f/4.0f);
         // 状态-默认关闭
@@ -69,6 +70,41 @@ static const CGFloat kDrawerControllerDimmingColorAlpha = 0.5f;
     return self;
 }
 
+/**
+ 添加左边的视图到dimmingView
+ */
+- (void)addLeftViewToDimming
+{
+    // 设置frame
+    CGRect rect = self.dimmingView.bounds;
+    rect.size.width = -self.offset; // 最开始完全在屏幕最左边的
+    self.leftViewController.view.frame = rect;
+    // 添加leftViewController的view到当前控制器
+    [self.dimmingView addSubview:self.leftViewController.view];
+    // 子视图移动到控制器完成
+    [self.leftViewController didMoveToParentViewController:self];
+}
+
+/**
+ 从dimmingView 上面删除抽屉视图
+ */
+- (void)removeLeftViewFromDimming
+{
+    // 移除
+    [self.leftViewController.view removeFromSuperview];
+}
+
+/**
+ 拖动抽屉
+
+ @param location 拖动的位置
+ */
+- (void)moveLeftView:(CGPoint)location velocity:(CGPoint)velocity
+{
+    CGPoint center = self.leftViewController.view.center;
+    center.x += velocity.x;
+    self.leftViewController.view.center = center;
+}
 
 - (void)setLeftViewController:(UIViewController <DrawerControllerChild, DrawerControllerPresenting>*)leftViewController
 {
@@ -87,6 +123,7 @@ static const CGFloat kDrawerControllerDimmingColorAlpha = 0.5f;
 - (void)leftSecrrenEdge:(UIScreenEdgePanGestureRecognizer *)sender
 {
     CGPoint location = [sender locationInView:self.view];
+    CGPoint velocity = [sender velocityInView:self.view];
     
     switch (sender.state)
     {
@@ -102,10 +139,13 @@ static const CGFloat kDrawerControllerDimmingColorAlpha = 0.5f;
                 // 滑动中
                 // 可滑动范围
                 self.dimmingView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:location.x / self.offset * kDrawerControllerDimmingColorAlpha];
+                // 移动
+                [self moveLeftView:location velocity:velocity];
             }
             else
             {
                 NSLog(@"location.x = 不可滑动");
+                self.drawerState = DrawerControllerStateOpen;
             }
         }  break;
         case UIGestureRecognizerStateEnded:
@@ -128,30 +168,23 @@ static const CGFloat kDrawerControllerDimmingColorAlpha = 0.5f;
 {
     // 抽屉将要出现
     UIViewController <DrawerControllerPresenting, DrawerControllerChild>*rootVC = self.childViewControllers.firstObject;
-    if ([self.leftViewController respondsToSelector:@selector(drawerControllerWillOpen:)] ||
-        [rootVC respondsToSelector:@selector(drawerControllerWillOpen:)])
+    if ([rootVC respondsToSelector:@selector(drawerControllerWillOpen:)])
     {
         [rootVC drawerControllerWillOpen:self];
+    }
+    
+    if ([self.leftViewController respondsToSelector:@selector(drawerControllerWillOpen:)])
+    {
         [self.leftViewController drawerControllerWillOpen:self];
     }
     
     [self.view addSubview:self.dimmingView];
     [self.view bringSubviewToFront:self.dimmingView];   // 显示在视图的最上层
     
-    switch (edge)
-    {
-        case UIRectEdgeLeft:
-        {
-            
-        } break;
-            
-        case UIRectEdgeRight:
-        {
-            
-        } break;
-            
-        default: break;
-    }
+    // 显示抽屉
+    [self addLeftViewToDimming];
+    // 设置状态
+    self.drawerState = DrawerControllerStateOpening;
 }
 
 - (void)open
